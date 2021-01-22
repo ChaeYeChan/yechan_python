@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form action="/addphoneinfo" method="post">
+        {% for key int phone_list %}
+            <li> {{key}} : {{phone_list[key]}} </li>
+        {% endfor %}
+
+    </form>
+
+</body>
+</html>
