@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
-from flask_restful import Resource, reqparse, Api
+from flask_restful import Api
+
+# Resource, reqparse,
 
 # 안녕하세요 수정된 파일입니다.
 
