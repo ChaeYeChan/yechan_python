@@ -34,7 +34,7 @@ from flask_restful import Resource, reqparse, Api
 
 
 
-app = Flask('__name__')
+app = Flask('My First App')
 api = Api(app)
 
 # api.add_resource(TvOn, '/tv/on')
@@ -123,9 +123,9 @@ def updatephoneinfo_pybo():
 
 
 
-
-if __name__ == '__main__':
-    app.run()
+#
+# if __name__ == '__main__':
+#     app.run()
 
 
 # app.run(debug=True)
