@@ -80,18 +80,6 @@ def searchinfo_pybo():
         return b[phone_number]
 
 
-    # @app.route('/delphoneinfo', methods=['POST'])
-    # def delphoneinfo_pybo():
-    #     phone_number = request.form['number']
-    #     if b.get(phone_number) == None:
-    #         return '없는 번호 입니다..'
-    #     else:
-    #         del b[phone_number]
-    #         return '삭제 성공!.'
-
-# return b[phone_number]
-
-
 @app.route('/register')
 def register_pybo():
     return render_template('register.html')
@@ -125,9 +113,9 @@ def updatephoneinfo_pybo():
 
 
 
-#
-# if __name__ == '__main__':
-#     app.run()
+
+if __name__ == '__main__':
+    app.run()
 
 
-# app.run(debug=True)
+app.run(debug=True)
