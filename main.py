@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
-from flask_restful import Api
+from flask_restful import Api, reqparse, Resource
+import time
+
 
 # Resource, reqparse,
 
@@ -27,24 +29,410 @@ from flask_restful import Api
 #             return {'result': 'tv os off now'}
 #         except Exception as e:
 #             return {'error': str(e)}
+global_id = 4
+
+class User(Resource):
+    def post(self):
+        # 등록
+        try:
+            global user
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', required=True)
+            parser.add_argument('id', required=True)
+            parser.add_argument('password', required=True)
+            args = parser.parse_args()
+            name = args['name']
+            id = args['id']
+            password = args['password']
+            if user.get(id) == None:
+                user[name] = {name : password}
+                return {'result' : 'ok'}
+            else:
+                return {'result': 'Nok'}
+        except Exception as e:
+            return {'error': str(e)}
+
+
+    def get(self):
+        try:
+            global user
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', required=True)
+            args = parser.parse_args()
+            name =args['name']
+            return_list = []
+            for i in user:
+                if name == user[i]['name']:
+                    return_list.append(i)
+            if len(return_list) > 0:
+                return {'result' : 'ok', 'userids' : return_list}
+            else:
+                return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
+        except Exception as e:
+            return {'error': str(e)}
+
+    def get(self):
+            # 검색 찾기
+        try:
+           global user
+           parser = reqparse.RequestParser()
+           parser.add_argument('name', required=True)
+           args = parser.parse_args()
+
+           name = args['name']
+
+           return_list = []
+           for i in user:
+               if name == user[i]['name']:
+                   return_list.append(i)
+           if len(return_list) > 0:
+               return {'result' : 'ok', 'userids' : return_list}
+           else:
+               return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
+           #
+           #
+           # if user.get(name) == None:
+           #     return {'result': 'Nok', 'reason' : '등록된 사용자가 없습니다.'}
+           # else:
+           #     return {'result': 'ok', 'user': user[id]}
+           # else:
+           #     name = args['name']
+           #     # name = args.get('name')
+           #     # get은 함수라 ()
+           #     if user.get(name) == None:
+           #         return {'result' : 'Nok', 'reason' : '해당 사용자가 없습니다.'}
+           #     else:
+           #        return {'result' : 'ok', 'userids' : user[name]}
+        except Exception as e:
+            return {'error': str(e)}
+
+    def put(self):
+            # 수정
+        global user
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', required=True)
+            parser.add_argument('id', required=True)
+            parser.add_argument('password', required=True)
+            args = parser.parse_args()
+
+            name = args['name']
+            id = args['id']
+            password = args['password']
+
+            if user.get(name) == None:
+                return {'result': 'Nok!'}
+            else:
+                if (user.get(name)).get(id) == None:
+                    return {'result': 'Nok'}
+                else:
+                    (user[name])[id] = password
+                    return {'result': 'ok'}
+        except Exception as e:
+            return {'error': str(e)}
+
+    def delete(self):
+        global user
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', required=True)
+            parser.add_argument('id', required=True)
+            args = parser.parse_args()
+
+            name = args['name']
+            id = args['id']
+
+            if user.get(name) == None:
+                return {'result' : 'Nok'}
+            else:
+                if (user.get(name)).get(id) == None:
+                    return {'result': 'Nok'}
+                else:
+                    del user[name]
+                    # (memo_map[userid])[memoid] = memo
+                    return {'result' : 'DELETE'}
+        except Exception as e:
+            return {'eroor': str(e)}
+
+class UserAllList(Resource):
+    def get(self):
+        # 전체목록 출력
+        global user
+        try:
+            # parser = reqparse.RequestParser()
+            # parser.add_argument('name', required=True)
+            # args = parser.parse_args()
+            # userid = args['userid']
+            # if memo_map.get(userid) == None:
+            #     return {'result': 'Nok'}
+            # else:
+            return {'userlist' : user}
+        except Exception as e:
+            return {'error': str(e)}
 
 
 
+class Userlist(Resource):
+    def get(self):
+            # 찾기
+        try:
+           global user_map
+           parser = reqparse.RequestParser()
+           parser.add_argument('name', required=False)
+           args = parser.parse_args()
+           if args.get('name') == None:
+              if user_map == {}:
+                  return {'result': 'Nok', 'reason' : '등록된 사용자가 없습니다.'}
+              else:
+                  return {'result': 'ok', 'userlist': user_map}
+           else:
+               name = args['name']
+               # name = args.get('name')
+
+               # get은 함수라 ()
+               if user_map.get(name) == None:
+                   return {'result' : 'Nok', 'reason' : '해당 사용자가 없습니다.'}
+               else:
+                  return {'result' : 'ok', 'userids' : user_map[name]}
+        except Exception as e:
+            return {'error': str(e)}
 
 
+class MemoInfo(Resource):
+    # def get(self):
+    #     # 찾기
+    #     global memo_map
+    #     try:
+    #         parser = reqparse.RequestParser()
+    #         parser.add_argument('name', required=True)
+    #         args = parser.parse_args()
+    #         name = args['name']
+    #         if memo_map.get(name) == None:
+    #             return {'result' : 'Nok'}
+    #         else:
+    #             return {'result' : 'ok', 'content' : memo_map[name]}
+    #     except Exception as e:
+    #         return {'error': str(e)}
 
+    def get(self):
+            # 찾기
+        global memo_map, user
 
+        try:
+              parser = reqparse.RequestParser()
+              parser.add_argument('userid', required=True)
+              parser.add_argument('memoid', required=True)
+              args = parser.parse_args()
+              userid = args['userid']
+              memoid = args['memoid']
 
+              if user.get(userid) == None:
+                  return {'result': 'Nok', 'reason': '등록되지않은 사용자입니다.'}
 
+              if memo_map.get(userid) == None:
+                  return {'result': 'Nok'}
+              else:
+                  if (memo_map.get(userid)).get(memoid) == None:
+                      return {'result': 'Nok'}
+                  else:
+                      return {'result': 'ok', 'memo': memo_map[userid][memoid]}
+        except Exception as e:
+            return {'error': str(e)}
+
+    # def get(self):
+    #     # 찾기
+    #     global memo_map
+    #     try:
+    #         parser = reqparse.RequestParser()
+    #         parser.add_argument('id', required=True)
+    #         args = parser.parse_args()
+    #         id = args['id']
+    #         print("id :", id)
+    #         if memo_map.get(id) == None:
+    #             return {'result': 'Nok'}
+    #         else:
+    #             return {'result': 'ok', 'content': memo_map[id]}
+    #     except Exception as e:
+    #         return {'error': str(e)}
+
+    def post(self):
+        # 저장
+        global memo_map, user
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('userid', required=True)
+            parser.add_argument('memo', required=True)
+            args = parser.parse_args()
+            userid = args['userid']
+            memo = args['memo']
+            if user.get(userid) == None:
+                return {'result': 'Nok', 'reason': '등록되지않은 사용자입니다.'}
+
+            memoid = str(time.time())
+            if memo_map.get(userid) == None:
+                memo_map[userid] = {memoid : memo}
+            else:
+                memo_map[userid].update({memoid : memo})
+            return {'result': 'ok', 'memoid' : memoid}
+        except Exception as e:
+            return {'error': str(e)}
+
+    def put(self):
+            # 수정
+        global memo_map, user
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('userid', required=True)
+            parser.add_argument('memoid', required=True)
+            parser.add_argument('memo', required=True)
+            args = parser.parse_args()
+
+            userid = args['userid']
+            memoid = args['memoid']
+            memo = args['memo']
+
+            if user.get(userid) == None:
+                return {'result': 'Nok', 'reason': '등록되지않은 사용자입니다.'}
+
+            if memo_map.get(userid) == None:
+                return {'result': 'Nok!'}
+            else:
+                if (memo_map.get(userid)).get(memoid) == None:
+                    return {'result': 'Nok'}
+                else:
+                    (memo_map[userid])[memoid] = memo
+                    return {'result': 'ok'}
+        except Exception as e:
+            return {'error': str(e)}
+
+        # def post(self):
+        #     # 저장
+        #     global memo_map
+        #     try:
+        #         parser = reqparse.RequestParser()
+        #         parser.add_argument('name', required=True)
+        #         parser.add_argument('memo', required=True)
+        #         args = parser.parse_args()
+        #         name = args['name']
+        #         memo = args['memo']
+        #
+        #         memo_map[str(time.time())] = {name: memo}
+        #         return {'result': 'ok'}
+        #     except Exception as e:
+        #         return {'error': str(e)}
+    def put(self):
+        # 수정
+        global memo_map, user
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('userid', required=True)
+            parser.add_argument('memoid', required=True)
+            parser.add_argument('memo', required=True)
+            args = parser.parse_args()
+
+            userid = args['userid']
+            memoid = args['memoid']
+            memo = args['memo']
+
+            if memo_map.get(userid) == None:
+                return {'result' : 'Nok!'}
+            else:
+                if (memo_map.get(userid)).get(memoid) == None:
+                    return {'result': 'Nok'}
+                else:
+                    (memo_map[userid])[memoid] = memo
+                return {'result' : 'ok'}
+        except Exception as e:
+            return {'error': str(e)}
+
+        # def put(self):
+        #     # 수정
+        #     global memo_map
+        #     try:
+        #         parser = reqparse.RequestParser()
+        #         parser.add_argument('name', required=True)
+        #         parser.add_argument('memo', required=True)
+        #         parser.add_argument('id', required=True)
+        #         args = parser.parse_args()
+        #
+        #         id = args['id']
+        #         name = args['name']
+        #         memo = args['memo']
+        #
+        #         if memo_map.get(id) == None:
+        #             return {'result': 'Nok'}
+        #         else:
+        #             memo_map[id] = {name: memo}
+        #             return {'result': 'ok'}
+        #     except Exception as e:
+        #         return {'error': str(e)}
+    def delete(self):
+        global memo_map
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', required=True)
+            args = parser.parse_args()
+            name = args['name']
+            if memo_map.get(name) == None:
+                return {'result' : 'Nok'}
+            else:
+                del memo_map[name]
+                return {'result' : 'ok'}
+        except Exception as e:
+            return {'error': str(e)}
+
+class MemoList(Resource):
+    def get(self):
+        global memo_map
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('userid', required=True)
+            args = parser.parse_args()
+            userid = args['userid']
+            if memo_map.get(userid) == None:
+                return {'result': 'Nok'}
+            else:
+                return {'result': 'ok', 'memolist' : memo_map.get(userid)}
+        except Exception as e:
+            return {'error': str(e)}
 
 app = Flask('My First App')
 api = Api(app)
 
-# api.add_resource(TvOn, '/tv/on')
-# api.add_resource(TvOff, '/tv/off')
+api.add_resource(MemoInfo, '/memo')
+api.add_resource(MemoList, '/memolist')
+api.add_resource(Userlist, '/userlist')
+api.add_resource(User, '/user')
+api.add_resource(UserAllList, '/useralllist')
 
 a = []
 b = {}
+
+memo_map = {
+             'userid1' : {'memoid1' : 'MemoContent1',
+                           'memoid2' : 'MemoContent2',
+                           'memoid3' : 'MemoContent3'},
+             'userid2' : {'memoid4' : 'MemoContent4'},
+             'userid3' : {'memoid5' : 'MemoContent5',
+                           'memoid6' : 'MemoContent6'},
+           }
+
+user_map = {
+             'name#1' : [ 'userid1', 'userid2' ],
+             'name#2' : [ 'userid3']
+           }
+
+user = {
+        'chae971012'  : { 'name' : 'yechan',
+                      'password' : '1234'},
+        'balloo150' : { 'name' : 'yechan',
+                      'password' : '4321'},
+        'balloony' : { 'name' : 'yechan2',
+                      'password' : '1234566'}
+       }
+
+# memo_map = {}
+
 
 @app.route('/')
 def hello_pybo():
