@@ -45,7 +45,8 @@ class User(Resource):
             id = args['id']
             password = args['password']
             if user.get(id) == None:
-                user[name] = {name : password}
+                user[id] = {'name': name,
+                              'password': password}
                 return {'result' : 'ok'}
             else:
                 return {'result': 'Nok'}
