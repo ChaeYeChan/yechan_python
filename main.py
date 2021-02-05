@@ -137,22 +137,16 @@ class User(Resource):
         global user
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('name', required=True)
             parser.add_argument('id', required=True)
             args = parser.parse_args()
 
-            name = args['name']
             id = args['id']
 
-            if user.get(name) == None:
+            if user.get(id) == None:
                 return {'result' : 'Nok'}
             else:
-                if (user.get(name)).get(id) == None:
-                    return {'result': 'Nok'}
-                else:
-                    del user[name]
-                    # (memo_map[userid])[memoid] = memo
-                    return {'result' : 'DELETE'}
+                del user[id]
+                return {'result' : 'DELETE'}
         except Exception as e:
             return {'eroor': str(e)}
 
