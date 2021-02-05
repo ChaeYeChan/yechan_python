@@ -122,14 +122,12 @@ class User(Resource):
             id = args['id']
             password = args['password']
 
-            if user.get(name) == None:
+            if user.get(id) == None:
                 return {'result': 'Nok!'}
             else:
-                if (user.get(name)).get(id) == None:
-                    return {'result': 'Nok'}
-                else:
-                    (user[name])[id] = password
-                    return {'result': 'ok'}
+                user[id] = { 'name' : name,
+                             'password' : password}
+                return {'result': 'ok'}
         except Exception as e:
             return {'error': str(e)}
 
