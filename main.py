@@ -71,26 +71,47 @@ class User(Resource):
     #             return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
     #     except Exception as e:
     #         return {'error': str(e)}
-
     def get(self):
             # 검색 찾기
         try:
            global user
            parser = reqparse.RequestParser()
-           parser.add_argument('name', required=True)
+           parser.add_argument('id', required=True)
            args = parser.parse_args()
 
-           name = args['name']
+           id = args['id']
 
-
-           return_list = []
-           for i in user:
-               if name == user[i]['name']:
-                   return_list.append(i)
-           if len(return_list) > 0:
-               return {'result' : 'ok', 'userids' : return_list}
+           if user.get(id) == None:
+               return {'result': 'Nok'}
            else:
-               return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
+
+               return {'result': 'ok', 'userinfo' : user[id]}
+
+
+
+
+
+
+
+    # def get(self):
+    #         # 검색 찾기
+    #     try:
+    #        global user
+    #        parser = reqparse.RequestParser()
+    #        parser.add_argument('name', required=True)
+    #        args = parser.parse_args()
+    #
+    #        name = args['name']
+    #
+    #
+    #        return_list = []
+    #        for i in user:
+    #            if name == user[i]['name']:
+    #                return_list.append(i)
+    #        if len(return_list) > 0:
+    #            return {'result' : 'ok', 'userids' : return_list}
+    #        else:
+    #            return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
            #
            #
            # if user.get(name) == None:
