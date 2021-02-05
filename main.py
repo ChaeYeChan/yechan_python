@@ -29,7 +29,6 @@ import time
 #             return {'result': 'tv os off now'}
 #         except Exception as e:
 #             return {'error': str(e)}
-global_id = 4
 
 class User(Resource):
     def post(self):
@@ -52,40 +51,40 @@ class User(Resource):
                 return {'result': 'Nok'}
         except Exception as e:
             return {'error': str(e)}
-    #
-    #
-    # def get(self):
-    #     try:
-    #         global user
-    #         parser = reqparse.RequestParser()
-    #         parser.add_argument('name', required=True)
-    #         args = parser.parse_args()
-    #         name =args['name']
-    #         return_list = []
-    #         for i in user:
-    #             if name == user[i]['name']:
-    #                 return_list.append(i)
-    #         if len(return_list) > 0:
-    #             return {'result' : 'ok', 'userids' : return_list}
-    #         else:
-    #             return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
-    #     except Exception as e:
-    #         return {'error': str(e)}
+
+
     def get(self):
-            # 검색 찾기
         try:
-           global user
-           parser = reqparse.RequestParser()
-           parser.add_argument('id', required=True)
-           args = parser.parse_args()
-
-           id = args['id']
-
-           if user.get(id) == None:
-               return {'result': 'Nok'}
-           else:
-
-               return {'result': 'ok', 'userinfo' : user[id]}
+            global user
+            parser = reqparse.RequestParser()
+            parser.add_argument('name', required=True)
+            args = parser.parse_args()
+            name =args['name']
+            return_list = []
+            for i in user:
+                if name == user[i]['name']:
+                    return_list.append({'id' : i})
+            if len(return_list) > 0:
+                return {'result' : 'ok', 'userids' : return_list}
+            else:
+                return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
+        except Exception as e:
+            return {'error': str(e)}
+    # def get(self):
+    #         # 검색 찾기
+    #     try:
+    #        global user
+    #        parser = reqparse.RequestParser()
+    #        parser.add_argument('id', required=True)
+    #        args = parser.parse_args()
+    #
+    #        id = args['id']
+    #
+    #        if user.get(id) == None:
+    #            return {'result': 'Nok'}
+    #        else:
+    #
+    #            return {'result': 'ok', 'userinfo' : user[id]}
 
 
 
@@ -182,6 +181,33 @@ class UserAllList(Resource):
             #     return {'result': 'Nok'}
             # else:
             return {'userlist' : user}
+        except Exception as e:
+            return {'error': str(e)}
+
+class UserAllid(Resource):
+    def get(self):
+        # 전체ID 출력
+        global user
+        try:
+            # parser = reqparse.RequestParser()
+            # parser.add_argument('id', required=True)
+            # args = parser.parse_args()
+            # id = args['id']
+            # name = args['name']
+            #         return_list = []
+            #         for i in user:
+            #             if name == user[i]['name']:
+            #                 return_list.append(i)
+            #         if len(return_list) > 0:
+            #             return {'result' : 'ok', 'userids' : return_list}
+            #         else:
+            #             return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
+            return_list = []
+            for i in user:
+                return_list.append({'id' : i})
+            if len(return_list) > 0:
+                return {'result' : 'ok', 'userid' : return_list}
+            # return {'userid' : user[id]}
         except Exception as e:
             return {'error': str(e)}
 
@@ -419,6 +445,7 @@ api.add_resource(MemoList, '/memolist')
 api.add_resource(Userlist, '/userlist')
 api.add_resource(User, '/user')
 api.add_resource(UserAllList, '/useralllist')
+api.add_resource(UserAllid, '/useridlist')
 
 a = []
 b = {}
