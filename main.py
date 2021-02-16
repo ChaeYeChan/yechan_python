@@ -1,54 +1,76 @@
+import time, os
 from flask import Flask, render_template, request
 from flask_restful import Api, reqparse, Resource
-import time
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from sqlalchemy.sql import select
+from models import db
+from models import UserInfo
+
+app = Flask('My First App')
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1591@localhost/pythonlogin'
+
+api = Api(app)
+
+basedir = os.path.abspath(os.path.dirname(__file__))  # database 경로를 절대경로로 설정함
+dbfile = os.path.join(basedir, 'db.sqlite')  # 데이터베이스 이름과 경로
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True  # 사용자에게 원하는 정보를 전달완료했을때가 TEARDOWN, 그 순간마다 COMMIT을 하도록 한다.라는 설정
+# 여러가지 쌓아져있던 동작들을 Commit을 해주어야 데이터베이스에 반영됨. 이러한 단위들은 트렌젝션이라고함.
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # True하면 warrnig메시지 유발,
+
+db.init_app(app)  # 초기화 후 db.app에 app으로 명시적으로 넣어줌
+db.app = app
+db.create_all()  # 이 명령이 있어야 생성됨. DB가
 
 
-# Resource, reqparse,
-
-# 안녕하세요 수정된 파일입니다.
 # 2차 수정입니다.
+
 
 # https://net-study.club/entry/AWS-%EC%95%84%EB%A7%88%EC%A1%B4-%EC%9B%B9-%EC%84%9C%EB%B9%84%EC%8A%A4Amazon-Web-Service-%EA%B0%80%EC%9E%85-%EC%9D%B8%EC%A6%9D
 
-# tvOnFlag = False
-
-# class TvOn(Resource):
-#     def get(self):
-#         try:
-#             global tvOnFlag
-#             tvOnFlag = True
-#             return {'result': 'tv in on now'}
-#         except Exception as e:
-#             return {'error': str(e)}
-#
-# class TvOff(Resource):
-#     def get(self):
-#         try:
-#             global tvOnFlag
-#             tvOnFlag = False
-#             return {'result': 'tv os off now'}
-#         except Exception as e:
-#             return {'error': str(e)}
 
 class User(Resource):
     def post(self):
         # 등록
         try:
-            global user
+            # global user
             parser = reqparse.RequestParser()
-            parser.add_argument('name', required=True)
             parser.add_argument('id', required=True)
+            parser.add_argument('name', required=True)
             parser.add_argument('password', required=True)
+
             args = parser.parse_args()
+            userid = args['id']
             name = args['name']
-            id = args['id']
             password = args['password']
-            if user.get(id) == None:
-                user[id] = {'name': name,
-                              'password': password}
-                return {'result' : 'ok'}
-            else:
-                return {'result': 'Nok'}
+
+            # no = request.form.get('no')
+            # name = request.form.get('name')
+            # password = request.form.get('password')
+            fcuser = UserInfo()
+            fcuser.id = userid
+            fcuser.name = name
+            fcuser.password = password  # models의 FCuser 클래스를 이용해 db에 입력한다.
+
+            db.session.add(fcuser)
+            db.session.commit()
+            return {'result': 'ok'}
+
+
+            # if user.get(id) == None:
+            #     user[id] = {'name': name,
+            #                   'password': password}
+            #     fcuser = UserInfo()
+            #     fcuser.password = password  # models의 FCuser 클래스를 이용해 db에 입력한다.
+            #     fcuser.id = id
+            #     fcuser.name = name
+            #     db.session.add(fcuser)
+            #     db.session.commit()
+            #     return {'result' : 'ok'}
+            # else:
+            #     return {'result': 'Nok'}
         except Exception as e:
             return {'error': str(e)}
 
@@ -125,8 +147,8 @@ class User(Resource):
            #         return {'result' : 'Nok', 'reason' : '해당 사용자가 없습니다.'}
            #     else:
            #        return {'result' : 'ok', 'userids' : user[name]}
-        except Exception as e:
-            return {'error': str(e)}
+        # except Exception as e:
+        #     return {'error': str(e)}
 
     def put(self):
             # 수정
@@ -180,6 +202,7 @@ class UserAllList(Resource):
             # if memo_map.get(userid) == None:
             #     return {'result': 'Nok'}
             # else:
+
             return {'userlist' : user}
         except Exception as e:
             return {'error': str(e)}
@@ -437,8 +460,7 @@ class MemoList(Resource):
         except Exception as e:
             return {'error': str(e)}
 
-app = Flask('My First App')
-api = Api(app)
+
 
 api.add_resource(MemoInfo, '/memo')
 api.add_resource(MemoList, '/memolist')
@@ -542,11 +564,6 @@ def updatephoneinfo_pybo():
         b[phone_number] = name
         return '업데이트 수정 성공!!'
 
+if __name__ == "__main__":
 
-
-
-if __name__ == '__main__':
-    app.run()
-
-
-app.run(debug=True)
+    app.run(debug=True)
