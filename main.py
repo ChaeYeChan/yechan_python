@@ -1,11 +1,13 @@
 import time, os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, _app_ctx_stack
 from flask_restful import Api, reqparse, Resource
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.sql import select
 from models import db
 from models import UserInfo
+import sqlite3
+# 수정수정
 
 app = Flask('My First App')
 
@@ -20,6 +22,9 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True  # 사용자에게 원하는 
 # 여러가지 쌓아져있던 동작들을 Commit을 해주어야 데이터베이스에 반영됨. 이러한 단위들은 트렌젝션이라고함.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # True하면 warrnig메시지 유발,
 
+
+
+
 db.init_app(app)  # 초기화 후 db.app에 app으로 명시적으로 넣어줌
 db.app = app
 db.create_all()  # 이 명령이 있어야 생성됨. DB가
@@ -29,6 +34,14 @@ db.create_all()  # 이 명령이 있어야 생성됨. DB가
 
 
 # https://net-study.club/entry/AWS-%EC%95%84%EB%A7%88%EC%A1%B4-%EC%9B%B9-%EC%84%9C%EB%B9%84%EC%8A%A4Amazon-Web-Service-%EA%B0%80%EC%9E%85-%EC%9D%B8%EC%A6%9D
+
+# DATABASE = '/path/to/sqlite.db'
+#
+# def get_db():
+#     top = _app_ctx_stack.top
+#     if not hasattr(top, 'sqlite_db'):
+#         top.sqlite_db = sqlite3.connect(DATABASE)
+#     return top.sqlite_db
 
 
 class User(Resource):
