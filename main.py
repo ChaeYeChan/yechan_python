@@ -252,6 +252,10 @@ class logout(Resource):
             return {'error' : str(e)}
 
 
+@app.route('/')
+def hello_pybo():
+    return render_template('main.html')
+
 
 
 
