@@ -231,12 +231,14 @@ class login(Resource):
             query_user = UserInfo.query.filter_by(id=id).first()
 
             if query_user == None:
+                db.session.commit()
                 return {'result' : 'Nok', 'reason' : '미등록 id입니다.' }
             if password == query_user.password:
                 query_user.login = 'True'
                 db.session.commit()
                 return {'result': 'ok', 'login' : query_user.login}
             else:
+                db.session.commit()
                 return {'result' : 'Nok', 'reason' : 'password가 불일치 합니다.'}
         except Exception as e:
             return {'error' : str(e)}
