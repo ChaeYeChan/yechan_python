@@ -1,55 +1,63 @@
 import time, os
-from flask import Flask, render_template, request, _app_ctx_stack
+from flask import Flask, render_template, request, _app_ctx_stack, session, url_for, redirect
 from flask_restful import Api, reqparse, Resource
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.sql import select
+
 from models import db
 from models import UserInfo
 import sqlite3
-# 수정수정
 
 app = Flask('My First App')
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1591@localhost/pythonlogin'
-
 api = Api(app)
 
-basedir = os.path.abspath(os.path.dirname(__file__))  # database 경로를 절대경로로 설정함
-dbfile = os.path.join(basedir, 'db.sqlite')  # 데이터베이스 이름과 경로
+#현재있는 파일의 디렉토리 절대경로
+basdir = os.path.abspath(os.path.dirname(__file__))
+# basdir 경로안에 DB파일 만들기
+dbfile = os.path.join(basdir, 'db.sqlite')
+#SQLAlchemy 설정
+#내가 사용할 DB URI
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True  # 사용자에게 원하는 정보를 전달완료했을때가 TEARDOWN, 그 순간마다 COMMIT을 하도록 한다.라는 설정
-# 여러가지 쌓아져있던 동작들을 Commit을 해주어야 데이터베이스에 반영됨. 이러한 단위들은 트렌젝션이라고함.
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # True하면 warrnig메시지 유발,
+# 비지니스 로직이 끝날때 Commit 실행(DB반영)
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+#수정사항에 대한 TRACK
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# #SECRET_KEY
+# app.config['SECRET_KEY'] = 'jqiowejrojzxcovnklqnweiorjqwoijroi'
 
 
+# basedir = os.path.abspath(os.path.dirname(__file__))  # database 경로를 절대경로로 설정함
+# dbfile = os.path.join(basedir, 'db.sqlite')  # 데이터베이스 이름과 경로
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
+# app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True  # 사용자에게 원하는 정보를 전달완료했을때가 TEARDOWN, 그 순간마다 COMMIT을 하도록 한다.라는 설정
+# # 여러가지 쌓아져있던 동작들을 Commit을 해주어야 데이터베이스에 반영됨. 이러한 단위들은 트렌젝션이라고함.
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # True하면 warrnig메시지 유발,
 
 
-db.init_app(app)  # 초기화 후 db.app에 app으로 명시적으로 넣어줌
+db.init_app(app) #초기화 후 db.app에 app으로 명시적으로 넣어줌
 db.app = app
-db.create_all()  # 이 명령이 있어야 생성됨. DB가
+db.create_all() # 이 명령이 있어야 db가 생성됨
 
 
-# 2차 수정입니다.
+# @app.route('/', methods=['GET', 'POST'])
+# def home():
+# 	""" Session control"""
+# 	if not session.get('logged_in'):
+# 		return {'result': 'nok'}
+# 	else:
+# 		if request.method == 'POST':
+# 			username = getname(request.form['username'])
+# 			return render_template('index.html', data=getfollowedby(username))
+# 		return render_template('index.html')
 
 
-# https://net-study.club/entry/AWS-%EC%95%84%EB%A7%88%EC%A1%B4-%EC%9B%B9-%EC%84%9C%EB%B9%84%EC%8A%A4Amazon-Web-Service-%EA%B0%80%EC%9E%85-%EC%9D%B8%EC%A6%9D
-
-# DATABASE = '/path/to/sqlite.db'
-#
-# def get_db():
-#     top = _app_ctx_stack.top
-#     if not hasattr(top, 'sqlite_db'):
-#         top.sqlite_db = sqlite3.connect(DATABASE)
-#     return top.sqlite_db
 
 
 class User(Resource):
     def post(self):
-        # 등록
-        print('Hi post')
         try:
-            # global user
+            print('start')
             parser = reqparse.RequestParser()
             parser.add_argument('id', required=True)
             parser.add_argument('name', required=True)
@@ -66,498 +74,201 @@ class User(Resource):
             address = args['address']
             rrn = args['rrn']
 
-            print('userid', userid)
-
-
-            # no = request.form.get('no')
-            # name = request.form.get('name')
-            # password = request.form.get('password')
+            print(id)
             fcuser = UserInfo()
             fcuser.id = userid
             fcuser.name = name
-            fcuser.password = password  # models의 FCuser 클래스를 이용해 db에 입력한다.
+            fcuser.password = password
             fcuser.phoneNumber = phoneNumber
             fcuser.address = address
             fcuser.rrn = rrn
 
+            print(id)
             db.session.add(fcuser)
+            print(id)
             db.session.commit()
-            return {'result': 'ok'}
-
-
-            # if user.get(id) == None:
-            #     user[id] = {'name': name,
-            #                   'password': password}
-            #     fcuser = UserInfo()
-            #     fcuser.password = password  # models의 FCuser 클래스를 이용해 db에 입력한다.
-            #     fcuser.id = id
-            #     fcuser.name = name
-            #     db.session.add(fcuser)
-            #     db.session.commit()
-            #     return {'result' : 'ok'}
-            # else:
-            #     return {'result': 'Nok'}
-        except Exception as e:
-            return {'error': str(e)}
-
-
-    def get(self):
-        try:
-            print('Hi get')
-            parser = reqparse.RequestParser()
-            parser.add_argument('name', required=True)
-            parser.add_argument('rrn', required=True)
-            # parser.add_argument('rrn', required=True)
-            args = parser.parse_args()
-            input_name =args['name']
-            input_rrn = args['rrn']
-            print('Input: ', input_name, input_rrn)
-
-            query_user = UserInfo.query.filter_by(rrn=input_rrn).first()
-
-            print('Query: ', query_user.name)
-
-            if query_user == None:
-                return {'result' : 'Nok', 'reason': '미등록 사용자 입니다.'}
-            if input_name == query_user.name:
-                return {'result': 'ok', 'id': query_user.id}
-            else:
-                return {'result': 'Nok', 'reason': '주민번호와 이름이 일치하지 않습니다.'}
+            print('end')
+            return {'result' : 'ok'}
         except Exception as e:
             return {'error': str(e)}
 
     def put(self):
-            # 수정
-        global user
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('name', required=True)
             parser.add_argument('id', required=True)
-            parser.add_argument('password', required=True) # 기존 password
-            parser.add_argument('newpassword', required=True)  # 기존 password
+            parser.add_argument('password', required=True)
+            parser.add_argument('newpassword', required=True)
             args = parser.parse_args()
-
             name = args['name']
             user_id = args['id']
             password = args['password']
             new_password = args['newpassword']
-            print('Input: ', user_id, name, password, new_password)
 
             query_user = UserInfo.query.filter_by(id=user_id).first()
-            print('Query: ', query_user.id, query_user.name, query_user.password)
             if query_user == None:
-                return {'result': 'Nok', 'reason': '미등록 id 입니다.'}
+                return {'result': 'Nok', 'reason': '미등록id입니다.'}
             if name != query_user.name:
-                return {'result': 'Nok', 'reason': '이름이 id와 일치하지 않습니다.'}
+                return {'result': 'Nok', 'reason': '이름이 id와 일치하지않습니다.'}
             if password == query_user.password:
                 query_user.password = new_password
-                ####### 주소 등 추가
                 db.session.commit()
                 return {'result': 'ok'}
             else:
                 return {'result': 'Nok', 'reason': 'password가 불일치 합니다.'}
-
         except Exception as e:
             return {'error': str(e)}
 
     def delete(self):
-        global user
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('id', required=True)
             parser.add_argument('password', required=True)
             args = parser.parse_args()
-
             id = args['id']
             password = args['password']
 
             query_user = UserInfo.query.filter_by(id=id).first()
 
             if query_user == None:
-                return {'result' : 'Nok', 'reason': '미등록 id 입니다.'}
+                return {'result' : 'Nok', 'reason' : '미등록 id입니다.' }
             if password == query_user.password:
                 db.session.delete(query_user)
                 db.session.commit()
                 return {'result': 'ok'}
             else:
-                return {'result': 'Nok', 'reason': 'password가 불일치 합니다.'}
+                return {'result' : 'Nok', 'reason' : 'password가 불일치 합니다.'}
         except Exception as e:
-            return {'error': str(e)}
+            return {'error' : str(e)}
 
-class UserAllList(Resource):
+class SearchId(Resource):
     def get(self):
-        # 전체목록 출력
-        global user
-        try:
-            # parser = reqparse.RequestParser()
-            # parser.add_argument('name', required=True)
-            # args = parser.parse_args()
-            # userid = args['userid']
-            # if memo_map.get(userid) == None:
-            #     return {'result': 'Nok'}
-            # else:
-
-            return {'userlist' : user}
-        except Exception as e:
-            return {'error': str(e)}
-
-class UserAllid(Resource):
-    def get(self):
-        # 전체ID 출력
-        global user
-        try:
-            # parser = reqparse.RequestParser()
-            # parser.add_argument('id', required=True)
-            # args = parser.parse_args()
-            # id = args['id']
-            # name = args['name']
-            #         return_list = []
-            #         for i in user:
-            #             if name == user[i]['name']:
-            #                 return_list.append(i)
-            #         if len(return_list) > 0:
-            #             return {'result' : 'ok', 'userids' : return_list}
-            #         else:
-            #             return {'result': 'Nok', 'reason': '등록된 사용자가 없습니다.'}
-            return_list = []
-            for i in user:
-                return_list.append({'id' : i})
-            if len(return_list) > 0:
-                return {'result' : 'ok', 'userid' : return_list}
-            # return {'userid' : user[id]}
-        except Exception as e:
-            return {'error': str(e)}
-
-
-
-class Userlist(Resource):
-    def get(self):
-            # 찾기
-        try:
-           global user_map
-           parser = reqparse.RequestParser()
-           parser.add_argument('name', required=False)
-           args = parser.parse_args()
-           if args.get('name') == None:
-              if user_map == {}:
-                  return {'result': 'Nok', 'reason' : '등록된 사용자가 없습니다.'}
-              else:
-                  return {'result': 'ok', 'userlist': user_map}
-           else:
-               name = args['name']
-               # name = args.get('name')
-
-               # get은 함수라 ()
-               if user_map.get(name) == None:
-                   return {'result' : 'Nok', 'reason' : '해당 사용자가 없습니다.'}
-               else:
-                  return {'result' : 'ok', 'userids' : user_map[name]}
-        except Exception as e:
-            return {'error': str(e)}
-
-
-class MemoInfo(Resource):
-    # def get(self):
-    #     # 찾기
-    #     global memo_map
-    #     try:
-    #         parser = reqparse.RequestParser()
-    #         parser.add_argument('name', required=True)
-    #         args = parser.parse_args()
-    #         name = args['name']
-    #         if memo_map.get(name) == None:
-    #             return {'result' : 'Nok'}
-    #         else:
-    #             return {'result' : 'ok', 'content' : memo_map[name]}
-    #     except Exception as e:
-    #         return {'error': str(e)}
-
-    def get(self):
-            # 찾기
-        global memo_map, user
-
-        try:
-              parser = reqparse.RequestParser()
-              parser.add_argument('userid', required=True)
-              parser.add_argument('memoid', required=True)
-              args = parser.parse_args()
-              userid = args['userid']
-              memoid = args['memoid']
-
-              if user.get(userid) == None:
-                  return {'result': 'Nok', 'reason': '등록되지않은 사용자입니다.'}
-
-              if memo_map.get(userid) == None:
-                  return {'result': 'Nok'}
-              else:
-                  if (memo_map.get(userid)).get(memoid) == None:
-                      return {'result': 'Nok'}
-                  else:
-                      return {'result': 'ok', 'memo': memo_map[userid][memoid]}
-        except Exception as e:
-            return {'error': str(e)}
-
-    # def get(self):
-    #     # 찾기
-    #     global memo_map
-    #     try:
-    #         parser = reqparse.RequestParser()
-    #         parser.add_argument('id', required=True)
-    #         args = parser.parse_args()
-    #         id = args['id']
-    #         print("id :", id)
-    #         if memo_map.get(id) == None:
-    #             return {'result': 'Nok'}
-    #         else:
-    #             return {'result': 'ok', 'content': memo_map[id]}
-    #     except Exception as e:
-    #         return {'error': str(e)}
-
-    def post(self):
-        # 저장
-        global memo_map, user
-        try:
-            parser = reqparse.RequestParser()
-            parser.add_argument('userid', required=True)
-            parser.add_argument('memo', required=True)
-            args = parser.parse_args()
-            userid = args['userid']
-            memo = args['memo']
-            if user.get(userid) == None:
-                return {'result': 'Nok', 'reason': '등록되지않은 사용자입니다.'}
-
-            memoid = str(time.time())
-            if memo_map.get(userid) == None:
-                memo_map[userid] = {memoid : memo}
-            else:
-                memo_map[userid].update({memoid : memo})
-            return {'result': 'ok', 'memoid' : memoid}
-        except Exception as e:
-            return {'error': str(e)}
-
-    def put(self):
-            # 수정
-        global memo_map, user
-        try:
-            parser = reqparse.RequestParser()
-            parser.add_argument('userid', required=True)
-            parser.add_argument('memoid', required=True)
-            parser.add_argument('memo', required=True)
-            args = parser.parse_args()
-
-            userid = args['userid']
-            memoid = args['memoid']
-            memo = args['memo']
-
-            if user.get(userid) == None:
-                return {'result': 'Nok', 'reason': '등록되지않은 사용자입니다.'}
-
-            if memo_map.get(userid) == None:
-                return {'result': 'Nok!'}
-            else:
-                if (memo_map.get(userid)).get(memoid) == None:
-                    return {'result': 'Nok'}
-                else:
-                    (memo_map[userid])[memoid] = memo
-                    return {'result': 'ok'}
-        except Exception as e:
-            return {'error': str(e)}
-
-        # def post(self):
-        #     # 저장
-        #     global memo_map
-        #     try:
-        #         parser = reqparse.RequestParser()
-        #         parser.add_argument('name', required=True)
-        #         parser.add_argument('memo', required=True)
-        #         args = parser.parse_args()
-        #         name = args['name']
-        #         memo = args['memo']
-        #
-        #         memo_map[str(time.time())] = {name: memo}
-        #         return {'result': 'ok'}
-        #     except Exception as e:
-        #         return {'error': str(e)}
-    def put(self):
-        # 수정
-        global memo_map, user
-        try:
-            parser = reqparse.RequestParser()
-            parser.add_argument('userid', required=True)
-            parser.add_argument('memoid', required=True)
-            parser.add_argument('memo', required=True)
-            args = parser.parse_args()
-
-            userid = args['userid']
-            memoid = args['memoid']
-            memo = args['memo']
-
-            if memo_map.get(userid) == None:
-                return {'result' : 'Nok!'}
-            else:
-                if (memo_map.get(userid)).get(memoid) == None:
-                    return {'result': 'Nok'}
-                else:
-                    (memo_map[userid])[memoid] = memo
-                return {'result' : 'ok'}
-        except Exception as e:
-            return {'error': str(e)}
-
-        # def put(self):
-        #     # 수정
-        #     global memo_map
-        #     try:
-        #         parser = reqparse.RequestParser()
-        #         parser.add_argument('name', required=True)
-        #         parser.add_argument('memo', required=True)
-        #         parser.add_argument('id', required=True)
-        #         args = parser.parse_args()
-        #
-        #         id = args['id']
-        #         name = args['name']
-        #         memo = args['memo']
-        #
-        #         if memo_map.get(id) == None:
-        #             return {'result': 'Nok'}
-        #         else:
-        #             memo_map[id] = {name: memo}
-        #             return {'result': 'ok'}
-        #     except Exception as e:
-        #         return {'error': str(e)}
-    def delete(self):
-        global memo_map
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('name', required=True)
+            parser.add_argument('rrn', required=True)
             args = parser.parse_args()
-            name = args['name']
-            if memo_map.get(name) == None:
-                return {'result' : 'Nok'}
+            input_name = args['name']
+            input_rrn = args['rrn']
+
+            query_user = UserInfo.query.filter_by(rrn=input_rrn).first()
+
+            if query_user == None:
+                return {'result' : 'Nok', 'reason': '미등록 사용자 입니다.'}
+            if input_name == query_user.name:
+                return {'result': 'ok', 'id': query_user.id}
             else:
-                del memo_map[name]
-                return {'result' : 'ok'}
+                return {'result': 'Nok', 'reason': '주민번호와 이름이 일치하지않음'}
         except Exception as e:
             return {'error': str(e)}
 
-class MemoList(Resource):
+class SearchPassword(Resource):
     def get(self):
-        global memo_map
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('userid', required=True)
+            parser.add_argument('id', required=True)
+            parser.add_argument('rrn', required=True)
             args = parser.parse_args()
-            userid = args['userid']
-            if memo_map.get(userid) == None:
-                return {'result': 'Nok'}
+            input_id = args['id']
+            input_rrn = args['rrn']
+
+            query_user = UserInfo.query.filter_by(rrn=input_rrn).first()
+
+            if query_user == None:
+                return {'result' : 'Nok', 'reason': '미등록 사용자 입니다.'}
+            if input_id == query_user.id:
+                return {'result': 'ok', 'id': query_user.password}
             else:
-                return {'result': 'ok', 'memolist' : memo_map.get(userid)}
+                return {'result': 'Nok', 'reason': '주민번호와 이름이 일치하지않음'}
         except Exception as e:
             return {'error': str(e)}
 
+# class UserAllList(Resource):
+#     def get(self):
+#         try:
+#             print('start')
+#             print(UserInfo)
+#             query_user = UserInfo.query.filter_by(id=id).first()
+#             print('mid')
+#
+#             return {'UserInfo' : query_user.query.all()}
+#             print('end')
+#         except Exception as e:
+#             return {'error': str(e)}
+
+# class login(Resource):
+#     def get(self):
+#         try:
+#             print('1')
+#             parser = reqparse.RequestParser()
+#             parser.add_argument('id', required=True)
+#             parser.add_argument('password', required=True)
+#             args = parser.parse_args()
+#             id = args['id']
+#             password = args['password']
+#             print('2')
+#             data = UserInfo.query.filter_by(id=id, password=password).first()
+#             print('3')
+#             if data is not None:
+#                 db.session['logged_in'] = True
+#                 print('4')
+#                 return {'ok'}
+#
+#
+#         except Exception as e:
+#             return {'error' : str(e)}
+
+class login(Resource):
+    def get(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('id', required=True)
+            parser.add_argument('password', required=True)
+            args = parser.parse_args()
+            id = args['id']
+            password = args['password']
+
+            query_user = UserInfo.query.filter_by(id=id).first()
+
+            if query_user == None:
+                return {'result' : 'Nok', 'reason' : '미등록 id입니다.' }
+            if password == query_user.password:
+                query_user.login = 'True'
+                db.session.commit()
+                return {'result': 'ok', 'login' : query_user.login}
+            else:
+                return {'result' : 'Nok', 'reason' : 'password가 불일치 합니다.'}
+        except Exception as e:
+            return {'error' : str(e)}
+
+class logout(Resource):
+    def get(self):
+        try:
+            # query_user = UserInfo.query.filter_by(id=id).first()
+            UserInfo.login = 'False'
+            db.session.commit()
+            return {'result': 'ok', 'login' : UserInfo.login}
+        except Exception as e:
+            return {'error' : str(e)}
 
 
-api.add_resource(MemoInfo, '/memo')
-api.add_resource(MemoList, '/memolist')
-api.add_resource(Userlist, '/userlist')
+
+
+
+
 api.add_resource(User, '/user')
-api.add_resource(UserAllList, '/useralllist')
-api.add_resource(UserAllid, '/useridlist')
+# api.add_resource(UserAllList, '/useralllist')
+api.add_resource(SearchId, '/searchid')
+api.add_resource(SearchPassword, '/searchpassword')
+api.add_resource(login, '/login')
+api.add_resource(logout, '/logout')
 
-a = []
-b = {}
+app.secret_key = "super secret key"
+app.config['SESSION_TYPE'] = 'filesystem'
 
-memo_map = {
-             'userid1' : {'memoid1' : 'MemoContent1',
-                           'memoid2' : 'MemoContent2',
-                           'memoid3' : 'MemoContent3'},
-             'userid2' : {'memoid4' : 'MemoContent4'},
-             'userid3' : {'memoid5' : 'MemoContent5',
-                           'memoid6' : 'MemoContent6'},
-           }
-
-user_map = {
-             'name#1' : [ 'userid1', 'userid2' ],
-             'name#2' : [ 'userid3']
-           }
-
-user = {
-        'chae971012'  : { 'name' : 'yechan',
-                      'password' : '1234'},
-        'balloo150' : { 'name' : 'yechan',
-                      'password' : '4321'},
-        'balloony' : { 'name' : 'yechan2',
-                      'password' : '1234566'}
-       }
-
-# memo_map = {}
-
-
-@app.route('/')
-def hello_pybo():
-    return render_template('main.html', phone_length=len(b), phone_list=b)
-
-@app.route('/add')
-def add_pybo():
-    return render_template('add.html')
-
-@app.route('/addinfo', methods=['POST'])
-def addinfo_pybo():
-    name = request.form['name']
-    phone_number = request.form['number']
-    if b.get(phone_number) == None:
-        b[phone_number] = name
-        return '등록 성공!'
-    else:
-        return '이미 등록된 번호..'
-
-@app.route('/showinfo')
-def showinfo_pybo():
-    return render_template('showinfo.html',  phone_length=len(b), phone_list=b)
-
-@app.route('/search')
-def search_pybo():
-    return render_template('search.html')
-
-@app.route('/searchinfo', methods=['POST'])
-def searchinfo_pybo():
-    phone_number = request.form['number']
-    if b.get(phone_number) == None:
-        return '없는 번호야'
-    else:
-        return b[phone_number]
-
-
-@app.route('/register')
-def register_pybo():
-    return render_template('register.html')
-
-@app.route('/delete')
-def delete_pybo():
-    return render_template('delete.html')
-
-@app.route('/delphoneinfo', methods=['POST'])
-def delphoneinfo_pybo():
-    phone_number = request.form['number']
-    if b.get(phone_number) == None:
-        return '없는 번호 입니다..'
-    else:
-        del b[phone_number]
-        return '삭제 성공!.'
-
-@app.route('/update')
-def update_pybo():
-    return render_template('update.html')
-
-@app.route('/updatephoneinfo', methods=['POST'])
-def updatephoneinfo_pybo():
-    phone_number = request.form['number']
-    name = request.form['name']
-    if b.get(phone_number) == None:
-        return '없는 번호입니다.'
-    else:
-        b[phone_number] = name
-        return '업데이트 수정 성공!!'
 
 if __name__ == "__main__":
-
     app.run(debug=True)
+
+
+
