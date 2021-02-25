@@ -236,7 +236,10 @@ class login(Resource):
             if password == query_user.password:
                 query_user.login = 'True'
                 db.session.commit()
-                return {'result': 'ok', 'login' : query_user.login}
+                return {'result': 'ok', 'login' : query_user.login, 'userdata' :
+                    {'id' : query_user.id, 'password' : query_user.password,
+                     'name' : query_user.name, 'phonenumber' : query_user.phoneNumber,
+                     'address' : query_user.address, 'rrn' : query_user.rrn} }
             else:
                 db.session.commit()
                 return {'result' : 'Nok', 'login' : 'password가 불일치 합니다.'}
