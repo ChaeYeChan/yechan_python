@@ -249,10 +249,22 @@ class login(Resource):
 class logout(Resource):
     def get(self):
         try:
-            # query_user = UserInfo.query.filter_by(id=id).first()
-            UserInfo.login = 'False'
-            db.session.commit()
-            return {'result': 'ok', 'login' : UserInfo.login}
+            parser = reqparse.RequestParser()
+            parser.add_argument('id', required=True)
+            parser.add_argument('password', required=True)
+            args = parser.parse_args()
+            id = args['id']
+            password = args['password']
+
+            query_user = UserInfo.query.filter_by(id=id).first()
+
+            if query_user == None:
+                db.session.commit()
+                return {'result' : 'Nok', 'login' : '미등록 id입니다.' }
+            if password == query_user.password:
+                query_user.login = 'False'
+                db.session.commit()
+            return {'result': 'ok', 'login' : query_user.login}
         except Exception as e:
             return {'error' : str(e)}
 
